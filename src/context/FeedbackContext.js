@@ -1,38 +1,48 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import "animate.css";
-import { v4 as uuidv4 } from "uuid";
 const FeedbackContext = createContext();
 
-export const FeedbackProvider = ({ children }) => {
-  const [feedback, setFeedback] = useState([
-    {
-      id: 1,
-      rating: 8,
-      subject: "Subject",
-      text: "From context Search for the keywords to learn more about each warning. To ignore, add eslint-disable-next-line to the line before.",
-    },
-    {
-      id: 2,
-      rating: 7,
-      subject: "Subject",
-      text: "From context Search for the keywords to learn more about each warning. To ignore, add eslint-disable-next-line to the line before.",
-    },
-    {
-      id: 3,
-      rating: 6,
-      subject: "Subject",
-      text: " From context Search for the keywords to learn more about each warning. To ignore, add eslint-disable-next-line to the line before.",
-    },
-  ]);
+export const FeedbackProvider = ({ children, reverse }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [feedback, setFeedback] = useState([]);
 
   const [feedbackEdit, setFeedbackEdit] = useState({
     item: {},
     edit: false,
   });
 
-  const reverse = false;
-  const deleteFeedback = (id) => {
+  useEffect(() => {
+    fetchFeedback();
+  }, []);
+
+  //Fetch feedback
+
+  const fetchFeedback = async () => {
+    const response = await fetch("/feedback?_sort=id&_order=desc");
+    const data = await response.json();
+
+    setFeedback(data);
+    setIsLoading(false);
+  };
+
+  //add feedback
+  const addFeedback = async (newFeedback) => {
+    const response = await fetch("/feedback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newFeedback),
+    });
+
+    const data = await response.json();
+    //console.log(data);
+
+    setFeedback([data, ...feedback]);
+  };
+
+  const deleteFeedback = async (id) => {
     Swal.fire({
       title: "",
       background: reverse ? "black" : "white",
@@ -50,23 +60,27 @@ export const FeedbackProvider = ({ children }) => {
       showCancelButton: true,
     }).then((willDelete) => {
       if (willDelete.isConfirmed) {
-        Swal.fire({
-          title: "",
-          background: reverse ? "black" : "white",
-          color: reverse ? "white" : "black",
-          showClass: {
-            popup: "animate__animated animate__fadeInDown",
-          },
-          hideClass: {
-            popup: "animate__animated animate__fadeOutUp",
-          },
-          text: "Review deleted successfully",
-          icon: "success",
-          confirmButtonText: "OK",
-          confirmButtonColor: "#202142",
-        }).then(() => {
-          setFeedback(feedback.filter((item) => item.id !== id));
-        });
+       
+         fetch(`/feedback/${id}`, {method: "DELETE" })
+        setFeedback(feedback.filter((item) => item.id !== id))
+
+      Swal.fire({
+        title: "",
+        background: reverse ? "black" : "white",
+        color: reverse ? "white" : "black",
+        showClass: {
+          popup: "animate__animated animate__fadeInDown",
+        },
+        hideClass: {
+          popup: "animate__animated animate__fadeOutUp",
+        },
+        text: "Review deleted successfully",
+        icon: "success",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#202142",
+      })
+          
+     
       }
     });
   };
@@ -80,23 +94,32 @@ export const FeedbackProvider = ({ children }) => {
   };
 
   //update feedback item
-  const updateFeedback = (id, updatedItem) => {
+  const updateFeedback = async (id, updatedItem) => {
+
+    const response = await fetch(`/feedback/${id}`, {
+      method : "PUT",
+      headers: {
+        "Content-Type" : "application/json"
+      },
+      body : JSON.stringify(updatedItem)
+    })
+
+    const data =  await response.json()
     setFeedback(
       feedback.map((item) =>
-        (item.id === id ? { ...item, ...updatedItem } : item))
-    )
+        item.id === id ? { ...item, ...data } : item
+      )
+    );
   };
-  const addFeedback = (newFeedback) => {
-    newFeedback.id = uuidv4();
-    console.log(newFeedback);
-    setFeedback([newFeedback, ...feedback]);
-  };
+
+
 
   return (
     <FeedbackContext.Provider
       value={{
         feedback: feedback,
         feedbackEdit: feedbackEdit,
+        isLoading: isLoading,
         deleteFeedback: deleteFeedback,
         addFeedback: addFeedback,
         editFeedback: editFeedback,

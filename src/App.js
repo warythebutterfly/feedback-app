@@ -8,6 +8,7 @@ import AboutPage from "./pages/AboutPage";
 import AboutIconLink from "./components/AboutIconLink";
 import {FeedbackProvider} from "./context/FeedbackContext";
 
+
 function App() {
   const [reverse, setReverse] = useState(false);
   const handleToggle = (state) => {
@@ -15,7 +16,7 @@ function App() {
   };
 
   return (
-    <FeedbackProvider>
+    <FeedbackProvider reverse={reverse}>
     <Router>
       <Header reverse={reverse} handleReverse={handleToggle} />
       <div className="container">

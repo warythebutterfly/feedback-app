@@ -13,10 +13,7 @@ body {
   line-height: 1.6;
 }
 
-.active{
-  background: black;
-  color: red;
-}
+
 ul {
   list-style: none;
 }
