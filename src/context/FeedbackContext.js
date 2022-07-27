@@ -19,16 +19,30 @@ export const FeedbackProvider = ({ children, reverse }) => {
   //Fetch feedback
 
   const fetchFeedback = async () => {
-    const response = await fetch("http://localhost:5000/feedback?_sort=id&_order=desc");
-    const data = await response.json();
+    // console.log("here")
+    const response = await fetch("api/feedback/getall", {
+      method: "GET",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      //body: JSON.stringify(data),
+    });
 
-    setFeedback(data);
+    //console.log(response.json());
+
+    //console.log(response);
+    const responseBody = await response.json();
+
+    console.log(responseBody);
+
+    setFeedback(responseBody.data);
     setIsLoading(false);
   };
 
   //add feedback
   const addFeedback = async (newFeedback) => {
-    const response = await fetch("http://localhost:5000/feedback", {
+    const response = await fetch("api/feedback/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -36,13 +50,13 @@ export const FeedbackProvider = ({ children, reverse }) => {
       body: JSON.stringify(newFeedback),
     });
 
-    const data = await response.json();
-    //console.log(data);
+    const responseBody = await response.json();
+    console.log(responseBody);
 
-    setFeedback([data, ...feedback]);
+    setFeedback([responseBody.data, ...feedback]);
   };
 
-  const deleteFeedback = async (id) => {
+  const deleteFeedback = async (id, subject) => {
     Swal.fire({
       title: "",
       background: reverse ? "black" : "white",
@@ -53,34 +67,95 @@ export const FeedbackProvider = ({ children, reverse }) => {
       hideClass: {
         popup: "animate__animated animate__fadeOutUp",
       },
-      text: "Are you sure you want to delete this review?",
+      text: `Are you sure you want to delete this feedback ${subject}?`,
       icon: "question",
       confirmButtonText: "OK",
       confirmButtonColor: "#202142",
       showCancelButton: true,
-    }).then((willDelete) => {
+    }).then(async (willDelete) => {
       if (willDelete.isConfirmed) {
-       
-         fetch(`http://localhost:5000/feedback/${id}`, {method: "DELETE" })
-        setFeedback(feedback.filter((item) => item.id !== id))
+        try {
+          const response = await fetch(`api/feedback/delete?id=${id}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
 
-      Swal.fire({
-        title: "",
-        background: reverse ? "black" : "white",
-        color: reverse ? "white" : "black",
-        showClass: {
-          popup: "animate__animated animate__fadeInDown",
-        },
-        hideClass: {
-          popup: "animate__animated animate__fadeOutUp",
-        },
-        text: "Review deleted successfully",
-        icon: "success",
-        confirmButtonText: "OK",
-        confirmButtonColor: "#202142",
-      })
-          
-     
+          const responseBody = await response.json();
+
+          console.log(responseBody);
+
+          if(responseBody.statusCode === "00"){
+          setFeedback(feedback.filter((item) => item.id !== id));
+
+           Swal.fire({
+            title: "",
+            background: reverse ? "black" : "white",
+            color: reverse ? "white" : "black",
+            showClass: {
+              popup: "animate__animated animate__fadeInDown",
+            },
+            hideClass: {
+              popup: "animate__animated animate__fadeOutUp",
+            },
+            text: "Feedback deleted successfully",
+            icon: "success",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#202142",
+          });
+        }
+        else if(responseBody.statusCode === "02"){
+          Swal.fire({
+            title: "",
+            background: reverse ? "black" : "white",
+            color: reverse ? "white" : "black",
+            showClass: {
+              popup: "animate__animated animate__fadeInDown",
+            },
+            hideClass: {
+              popup: "animate__animated animate__fadeOutUp",
+            },
+            text: responseBody.message,
+            icon: "warning",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#202142",
+          });
+        }
+        else{
+          Swal.fire({
+            title: "",
+            background: reverse ? "black" : "white",
+            color: reverse ? "white" : "black",
+            showClass: {
+              popup: "animate__animated animate__fadeInDown",
+            },
+            hideClass: {
+              popup: "animate__animated animate__fadeOutUp",
+            },
+            text: "Oops! An error occured. Please try again.",
+            icon: "error",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#202142",
+          });
+        }
+        } catch (error) {
+          Swal.fire({
+            title: "",
+            background: reverse ? "black" : "white",
+            color: reverse ? "white" : "black",
+            showClass: {
+              popup: "animate__animated animate__fadeInDown",
+            },
+            hideClass: {
+              popup: "animate__animated animate__fadeOutUp",
+            },
+            text: "Oops! An error occured",
+            icon: "error",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#202142",
+          });
+        }
       }
     });
   };
@@ -95,24 +170,43 @@ export const FeedbackProvider = ({ children, reverse }) => {
 
   //update feedback item
   const updateFeedback = async (id, updatedItem) => {
-
-    const response = await fetch(`http://localhost:5000/feedback/${id}`, {
-      method : "PUT",
+    updatedItem.id = id;
+    console.log(updatedItem);
+    const response = await fetch(`api/feedback/update`, {
+      method: "PUT",
       headers: {
-        "Content-Type" : "application/json"
+        "Content-Type": "application/json",
       },
-      body : JSON.stringify(updatedItem)
-    })
+      body: JSON.stringify(updatedItem),
+    });
 
-    const data =  await response.json()
+    const responseBody = await response.json();
+    console.log(responseBody);
+    if(responseBody.statusCode === "00"){
+
+      Swal.fire({
+        title: "",
+        background: reverse ? "black" : "white",
+        color: reverse ? "white" : "black",
+        showClass: {
+          popup: "animate__animated animate__fadeInDown",
+        },
+        hideClass: {
+          popup: "animate__animated animate__fadeOutUp",
+        },
+        text: "Feedback updated successfully",
+        icon: "success",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#202142",
+      });
+
     setFeedback(
       feedback.map((item) =>
-        item.id === id ? { ...item, ...data } : item
+        item.id === id ? { ...item, ...responseBody.data } : item
       )
     );
+    }
   };
-
-
 
   return (
     <FeedbackContext.Provider

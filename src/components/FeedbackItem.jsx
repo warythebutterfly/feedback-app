@@ -18,7 +18,7 @@ function FeedbackItem({ item, reverse }) {
   return (
     <Card reverse={reverse}>
       <div className="num-display">{item.rating}</div>
-      <button onClick={() => deleteFeedback(item.id)} className="close">
+      <button onClick={() => deleteFeedback(item.id, item.subject)} className="close">
         <FaTimesCircle color="purple" />
       </button>
       <button onClick={() => editFeedback(item)} className="edit">
