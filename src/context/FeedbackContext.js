@@ -20,7 +20,7 @@ export const FeedbackProvider = ({ children, reverse }) => {
 
   const fetchFeedback = async () => {
     // console.log("here")
-    const response = await fetch("api/feedback/getall", {
+    const response = await fetch("https://feedbackui-server.herokuapp.com/api/feedback/getall", {
       method: "GET",
       mode: "cors",
       headers: {
@@ -34,7 +34,7 @@ export const FeedbackProvider = ({ children, reverse }) => {
     //console.log(response);
     const responseBody = await response.json();
 
-    console.log(responseBody);
+    //console.log(responseBody);
 
     setFeedback(responseBody.data);
     setIsLoading(false);
@@ -42,7 +42,7 @@ export const FeedbackProvider = ({ children, reverse }) => {
 
   //add feedback
   const addFeedback = async (newFeedback) => {
-    const response = await fetch("api/feedback/create", {
+    const response = await fetch("https://feedbackui-server.herokuapp.com/api/feedback/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export const FeedbackProvider = ({ children, reverse }) => {
     }).then(async (willDelete) => {
       if (willDelete.isConfirmed) {
         try {
-          const response = await fetch(`api/feedback/delete?id=${id}`, {
+          const response = await fetch(`https://feedbackui-server.herokuapp.com/api/feedback/delete?id=${id}`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
@@ -172,7 +172,7 @@ export const FeedbackProvider = ({ children, reverse }) => {
   const updateFeedback = async (id, updatedItem) => {
     updatedItem.id = id;
     console.log(updatedItem);
-    const response = await fetch(`api/feedback/update`, {
+    const response = await fetch(`https://feedbackui-server.herokuapp.com/api/feedback/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
