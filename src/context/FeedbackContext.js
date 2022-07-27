@@ -22,7 +22,6 @@ export const FeedbackProvider = ({ children, reverse }) => {
     // console.log("here")
     const response = await fetch("https://feedbackui-server.herokuapp.com/api/feedback/getall", {
       method: "GET",
-      mode: "no-cors",
       headers: {
         "Content-Type": "application/json",
       },
